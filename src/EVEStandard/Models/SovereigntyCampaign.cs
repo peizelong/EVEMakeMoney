@@ -1,0 +1,132 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+
+namespace EVEStandard.Models
+{
+    public class SovereigntyCampaign : ModelBase<SovereigntyCampaign>
+    {
+        #region Enums
+
+        /// <summary>
+        /// Type of event this campaign is for. tcu_defense, ihub_defense and station_defense are referred to as \"Defense Events\", station_freeport as \"Freeport Events\". 
+        /// </summary>
+        /// <value>Type of event this campaign is for. tcu_defense, ihub_defense and station_defense are referred to as \"Defense Events\", station_freeport as \"Freeport Events\". </value>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum EventTypeEnum
+        {
+            tcu_defense = 1,
+            ihub_defense = 2,
+            station_defense = 3,
+            station_freeport = 4
+        }
+
+        #endregion Enums
+
+        #region Properties
+
+        /// <summary>
+        /// Score for all attacking parties, only present in Defense Events. 
+        /// </summary>
+        /// <value>Score for all attacking parties, only present in Defense Events. </value>
+        [JsonPropertyName("attackers_score")]
+        public float? AttackersScore { get; set; }
+
+        /// <summary>
+        /// Unique ID for this campaign.
+        /// </summary>
+        /// <value>Unique ID for this campaign.</value>
+        [JsonPropertyName("campaign_id")]
+        public long CampaignId { get; set; }
+
+        /// <summary>
+        /// The constellation in which the campaign will take place. 
+        /// </summary>
+        /// <value>The constellation in which the campaign will take place. </value>
+        [JsonPropertyName("constellation_id")]
+        public long ConstellationId { get; set; }
+
+        /// <summary>
+        /// Defending alliance, only present in Defense Events 
+        /// </summary>
+        /// <value>Defending alliance, only present in Defense Events </value>
+        [JsonPropertyName("defender_id")]
+        public long? DefenderId { get; set; }
+
+        /// <summary>
+        /// Score for the defending alliance, only present in Defense Events. 
+        /// </summary>
+        /// <value>Score for the defending alliance, only present in Defense Events. </value>
+        [JsonPropertyName("defender_score")]
+        public float? DefenderScore { get; set; }
+
+        /// <summary>
+        /// Type of event this campaign is for. tcu_defense, ihub_defense and station_defense are referred to as \&quot;Defense Events\&quot;, station_freeport as \&quot;Freeport Events\&quot;. 
+        /// </summary>
+        /// <value>Type of event this campaign is for. tcu_defense, ihub_defense and station_defense are referred to as \&quot;Defense Events\&quot;, station_freeport as \&quot;Freeport Events\&quot;. </value>
+        [JsonPropertyName("event_type")]
+        public string EventType { get; set; }
+
+        /// <summary>
+        /// Gets the EventType as enum (may throw exception if unknown value exists).
+        /// </summary>
+        [Obsolete("This property will be removed in a future version. Use the string property instead and parse manually if needed.")]
+
+        [JsonIgnore]
+        public EventTypeEnum EventTypeToEnum 
+        {
+            get => (EventTypeEnum)Enum.Parse(typeof(EventTypeEnum), EventType);
+        }
+
+        /// <summary>
+        /// Alliance participating and their respective scores, only present in Freeport Events. 
+        /// </summary>
+        /// <value>Alliance participating and their respective scores, only present in Freeport Events. </value>
+        [JsonPropertyName("participants")]
+        public List<SovereigntyCampaignsParticipant> Participants { get; set; }
+
+        /// <summary>
+        /// The solar system the structure is located in. 
+        /// </summary>
+        /// <value>The solar system the structure is located in. </value>
+        [JsonPropertyName("solar_system_id")]
+        public long SolarSystemId { get; set; }
+
+        /// <summary>
+        /// Time the event is scheduled to start. 
+        /// </summary>
+        /// <value>Time the event is scheduled to start. </value>
+        [JsonPropertyName("start_time")]
+        public DateTime StartTime { get; set; }
+
+        /// <summary>
+        /// The structure item ID that is related to this campaign. 
+        /// </summary>
+        /// <value>The structure item ID that is related to this campaign. </value>
+        [JsonPropertyName("structure_id")]
+        public long StructureId { get; set; }
+
+        #endregion Properties
+    }
+
+    public class SovereigntyCampaignsParticipant : ModelBase<SovereigntyCampaignsParticipant>
+    {
+        #region Properties
+
+        /// <summary>
+        /// alliance_id integer
+        /// </summary>
+        /// <value>alliance_id integer</value>
+        [JsonPropertyName("alliance_id")]
+        public long? AllianceId { get; set; }
+
+        /// <summary>
+        /// score number
+        /// </summary>
+        /// <value>score number</value>
+        [JsonPropertyName("score")]
+        public float? Score { get; set; }
+
+        #endregion Properties
+    }
+}

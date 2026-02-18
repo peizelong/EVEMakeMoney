@@ -1,0 +1,151 @@
+﻿using System;
+using System.Text.Json.Serialization;
+
+namespace EVEStandard.Models
+{
+    public class CharacterMarketOrderHistory
+    {
+        #region Enums
+
+        /// <summary>
+        /// Current order state
+        /// </summary>
+        /// <value>Current order state</value>
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum StateEnum
+        {
+            cancelled = 1,
+            expired = 2
+        }
+
+        #endregion Enums
+
+        #region Properties
+
+        /// <summary>
+        /// Number of days the order was valid for (starting from the issued date). An order expires at time issued + duration
+        /// </summary>
+        /// <value>Number of days the order was valid for (starting from the issued date). An order expires at time issued + duration</value>
+        [JsonPropertyName("duration")]
+        public long Duration { get; set; }
+
+        /// <summary>
+        /// For buy orders, the amount of ISK in escrow
+        /// </summary>
+        /// <value>For buy orders, the amount of ISK in escrow</value>
+        [JsonPropertyName("escrow")]
+        public double? Escrow { get; set; }
+
+        /// <summary>
+        /// True if the order is a bid (buy) order
+        /// </summary>
+        /// <value>True if the order is a bid (buy) order</value>
+        [JsonPropertyName("is_buy_order")]
+        public bool? IsBuyOrder { get; set; }
+
+        /// <summary>
+        /// Signifies whether the buy/sell order was placed on behalf of a corporation.
+        /// </summary>
+        /// <value>Signifies whether the buy/sell order was placed on behalf of a corporation.</value>
+        [JsonPropertyName("is_corporation")]
+        public bool IsCorporation { get; set; }
+
+        /// <summary>
+        /// Date and time when this order was issued
+        /// </summary>
+        /// <value>Date and time when this order was issued</value>
+        [JsonPropertyName("issued")]
+        public DateTime Issued { get; set; }
+
+        /// <summary>
+        /// ID of the location where order was placed
+        /// </summary>
+        /// <value>ID of the location where order was placed</value>
+        [JsonPropertyName("location_id")]
+        public long LocationId { get; set; }
+
+        /// <summary>
+        /// For buy orders, the minimum quantity that will be accepted in a matching sell order
+        /// </summary>
+        /// <value>For buy orders, the minimum quantity that will be accepted in a matching sell order</value>
+        [JsonPropertyName("min_volume")]
+        public long? MinVolume { get; set; }
+
+        /// <summary>
+        /// Unique order ID
+        /// </summary>
+        /// <value>Unique order ID</value>
+        [JsonPropertyName("order_id")]
+        public long OrderId { get; set; }
+
+        /// <summary>
+        /// Cost per unit for this order
+        /// </summary>
+        /// <value>Cost per unit for this order</value>
+        [JsonPropertyName("price")]
+        public double Price { get; set; }
+
+        /// <summary>
+        /// Valid order range, numbers are ranges in jumps
+        /// </summary>
+        /// <value>Valid order range, numbers are ranges in jumps</value>
+        [JsonPropertyName("range")]
+        public string Range { get; set; }
+
+        /// <summary>
+        /// ID of the region where order was placed
+        /// </summary>
+        /// <value>ID of the region where order was placed</value>
+        [JsonPropertyName("region_id")]
+        public long RegionId { get; set; }
+
+        /// <summary>
+        /// Current order state
+        /// </summary>
+        /// <value>Current order state</value>
+
+        [JsonPropertyName("state")]
+
+        public string State { get; set; }
+
+        /// <summary>
+
+        /// Gets the State as enum (may throw exception if unknown value exists).
+
+        /// </summary>
+
+        [Obsolete("This property will be removed in a future version. Use the string property instead and parse manually if needed.")]
+
+        [JsonIgnore]
+
+        public StateEnum StateToEnum 
+
+        {
+
+            get => (StateEnum)Enum.Parse(typeof(StateEnum), State);
+
+        }
+
+        /// <summary>
+        /// The type ID of the item transacted in this order
+        /// </summary>
+        /// <value>The type ID of the item transacted in this order</value>
+        [JsonPropertyName("type_id")]
+        public long TypeId { get; set; }
+        /// <summary>
+        /// Quantity of items still required or offered
+        /// </summary>
+        /// <value>Quantity of items still required or offered</value>
+        [JsonPropertyName("volume_remain")]
+        public long VolumeRemain { get; set; }
+
+        /// <summary>
+        /// Quantity of items required or offered at time order was placed
+        /// </summary>
+        /// <value>Quantity of items required or offered at time order was placed</value>
+        [JsonPropertyName("volume_total")]
+        public long VolumeTotal { get; set; }
+
+        #endregion Properties
+    }
+}

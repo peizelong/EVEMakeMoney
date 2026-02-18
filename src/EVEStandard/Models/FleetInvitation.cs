@@ -1,0 +1,52 @@
+﻿using System;
+using EVEStandard.Enumerations;
+using System.Text.Json.Serialization;
+
+namespace EVEStandard.Models
+{
+    public class FleetInvitation
+    {
+        #region Properties
+
+        /// <summary>
+        /// The character you want to invite
+        /// </summary>
+        /// <value>The character you want to invite</value>
+        [JsonPropertyName("character_id")]
+        public long CharacterId { get; set; }
+
+        /// <summary>
+        /// If a character is invited with the &#x60;fleet_commander&#x60; role, neither &#x60;wing_id&#x60; or &#x60;squad_id&#x60; should be specified. If a character is invited with the &#x60;wing_commander&#x60; role, only &#x60;wing_id&#x60; should be specified. If a character is invited with the &#x60;squad_commander&#x60; role, both &#x60;wing_id&#x60; and &#x60;squad_id&#x60; should be specified. If a character is invited with the &#x60;squad_member&#x60; role, &#x60;wing_id&#x60; and &#x60;squad_id&#x60; should either both be specified or not specified at all. If they aren’t specified, the invited character will join any squad with available positions.
+        /// </summary>
+        /// <value>If a character is invited with the &#x60;fleet_commander&#x60; role, neither &#x60;wing_id&#x60; or &#x60;squad_id&#x60; should be specified. If a character is invited with the &#x60;wing_commander&#x60; role, only &#x60;wing_id&#x60; should be specified. If a character is invited with the &#x60;squad_commander&#x60; role, both &#x60;wing_id&#x60; and &#x60;squad_id&#x60; should be specified. If a character is invited with the &#x60;squad_member&#x60; role, &#x60;wing_id&#x60; and &#x60;squad_id&#x60; should either both be specified or not specified at all. If they aren’t specified, the invited character will join any squad with available positions.</value>
+        [JsonPropertyName("role")]
+        public string Role { get; set; }
+
+        /// <summary>
+        /// Gets the Role as enum (may throw exception if unknown value exists).
+        /// </summary>
+        [Obsolete("This property will be removed in a future version. Use the string property instead and parse manually if needed.")]
+
+        [JsonIgnore]
+        public FleetRole RoleToEnum 
+        {
+            get => (FleetRole)Enum.Parse(typeof(FleetRole), Role);
+        }
+
+        /// <summary>
+        /// squad_id integer
+        /// </summary>
+        /// <value>squad_id integer</value>
+        [JsonPropertyName("squad_id")]
+        public long? SquadId { get; set; }
+
+        /// <summary>
+        /// wing_id integer
+        /// </summary>
+        /// <value>wing_id integer</value>
+        [JsonPropertyName("wing_id")]
+        public long? WingId { get; set; }
+
+        #endregion Properties
+    }
+}
