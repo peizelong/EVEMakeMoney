@@ -284,6 +284,20 @@ namespace QuickType
         public int ME { get; set; }
 
         public int TE { get; set; }
+
+        public decimal StructureTimeBonus { get; set; } = 0;
+
+        public decimal RigTimeBonus { get; set; } = 0;
+
+        public int IndustryLevel { get; set; } = 0;
+
+        public int AdvancedIndustryLevel { get; set; } = 0;
+
+        public decimal ReactionStructureTimeBonus { get; set; } = 0;
+
+        public decimal ReactionRigTimeBonus { get; set; } = 0;
+
+        public int ReactionLevel { get; set; } = 0;
     }
 
     public static class Serialize

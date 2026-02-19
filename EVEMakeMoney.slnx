@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EVEMakeMoney.Core/EVEMakeMoney.Core.csproj" />
+  <Project Path="EVEMakeMoney.Data/EVEMakeMoney.Data.csproj" />
+  <Project Path="EVEMakeMoney.Services/EVEMakeMoney.Services.csproj" />
+  <Project Path="EVEMakeMoney.Web/EVEMakeMoney.Web.csproj" />
+</Solution>

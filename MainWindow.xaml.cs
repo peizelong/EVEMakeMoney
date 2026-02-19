@@ -136,11 +136,46 @@ public partial class MainWindow : Window
             {
                 te = 0;
             }
+            if (!decimal.TryParse(StructureBonusTextBox.Text, out decimal structureBonus))
+            {
+                structureBonus = 0;
+            }
+            if (!decimal.TryParse(RigBonusTextBox.Text, out decimal rigBonus))
+            {
+                rigBonus = 0;
+            }
+            if (!int.TryParse(IndustryLevelTextBox.Text, out int industryLevel))
+            {
+                industryLevel = 0;
+            }
+            if (!int.TryParse(AdvancedIndustryLevelTextBox.Text, out int advancedIndustryLevel))
+            {
+                advancedIndustryLevel = 0;
+            }
+            if (!decimal.TryParse(ReactionStructureBonusTextBox.Text, out decimal reactionStructureBonus))
+            {
+                reactionStructureBonus = 0;
+            }
+            if (!decimal.TryParse(ReactionRigBonusTextBox.Text, out decimal reactionRigBonus))
+            {
+                reactionRigBonus = 0;
+            }
+            if (!int.TryParse(ReactionLevelTextBox.Text, out int reactionLevel))
+            {
+                reactionLevel = 0;
+            }
 
             foreach (var bp in _blueprints)
             {
                 bp.ME = me;
                 bp.TE = te;
+                bp.StructureTimeBonus = structureBonus;
+                bp.RigTimeBonus = rigBonus;
+                bp.IndustryLevel = industryLevel;
+                bp.AdvancedIndustryLevel = advancedIndustryLevel;
+                bp.ReactionStructureTimeBonus = reactionStructureBonus;
+                bp.ReactionRigTimeBonus = reactionRigBonus;
+                bp.ReactionLevel = reactionLevel;
             }
 
             CalculateCostButton.IsEnabled = false;
@@ -149,8 +184,8 @@ public partial class MainWindow : Window
             using var db = new EVEMakeMoneyDbContext();
             var costService = new CostCalculationService(db);
 
-            var costs = costService.CalculateAllCosts(_blueprints, me, te);
-            var times = costService.CalculateAllTimes(_blueprints, me, te);
+            var costs = costService.CalculateAllCosts(_blueprints, me, te, structureBonus, rigBonus, industryLevel, advancedIndustryLevel, reactionStructureBonus, reactionRigBonus, reactionLevel);
+            var times = costService.CalculateAllTimes(_blueprints, me, te, structureBonus, rigBonus, industryLevel, advancedIndustryLevel, reactionStructureBonus, reactionRigBonus, reactionLevel);
 
             foreach (var bp in _blueprints)
             {
@@ -165,7 +200,7 @@ public partial class MainWindow : Window
             }
 
             BlueprintGrid.Items.Refresh();
-            StatusText.Text = $"成本和时间计算完成！共计算 {_blueprints.Count} 个蓝图 (ME={me}, TE={te})";
+            StatusText.Text = $"成本和时间计算完成！共计算 {_blueprints.Count} 个蓝图 (ME={me}, TE={te}, 建筑={structureBonus}%, 插={rigBonus}%)";
         }
         catch (Exception ex)
         {

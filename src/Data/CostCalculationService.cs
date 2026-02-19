@@ -17,7 +17,11 @@ namespace EVEMakeMoney.Data
             _db = db;
         }
 
-        public Dictionary<long, decimal> CalculateAllCosts(List<Blueprint> blueprints, int me = 0, int te = 0)
+        public Dictionary<long, decimal> CalculateAllCosts(List<Blueprint> blueprints, int me = 0, int te = 0,
+            decimal structureTimeBonus = 0, decimal rigTimeBonus = 0, 
+            int industryLevel = 0, int advancedIndustryLevel = 0,
+            decimal reactionStructureTimeBonus = 0, decimal reactionRigTimeBonus = 0,
+            int reactionLevel = 0)
         {
             var productToBlueprint = new Dictionary<long, Blueprint>();
             var typeIdToMaterialBlueprints = new Dictionary<long, List<Blueprint>>();
@@ -70,6 +74,14 @@ namespace EVEMakeMoney.Data
                     bp.ME = me;
                     bp.TE = te;
                 }
+
+                bp.StructureTimeBonus = structureTimeBonus;
+                bp.RigTimeBonus = rigTimeBonus;
+                bp.IndustryLevel = industryLevel;
+                bp.AdvancedIndustryLevel = advancedIndustryLevel;
+                bp.ReactionStructureTimeBonus = reactionStructureTimeBonus;
+                bp.ReactionRigTimeBonus = reactionRigTimeBonus;
+                bp.ReactionLevel = reactionLevel;
 
                 if (bp.Activities?.Manufacturing?.Products != null)
                 {
@@ -130,7 +142,11 @@ namespace EVEMakeMoney.Data
             return costs;
         }
 
-        public Dictionary<long, decimal> CalculateAllTimes(List<Blueprint> blueprints, int me = 0, int te = 0)
+        public Dictionary<long, decimal> CalculateAllTimes(List<Blueprint> blueprints, int me = 0, int te = 0, 
+            decimal structureTimeBonus = 0, decimal rigTimeBonus = 0, 
+            int industryLevel = 0, int advancedIndustryLevel = 0,
+            decimal reactionStructureTimeBonus = 0, decimal reactionRigTimeBonus = 0,
+            int reactionLevel = 0)
         {
             var productToBlueprint = new Dictionary<long, Blueprint>();
             var typeIdToMaterialBlueprints = new Dictionary<long, List<Blueprint>>();
@@ -183,6 +199,14 @@ namespace EVEMakeMoney.Data
                     bp.ME = me;
                     bp.TE = te;
                 }
+
+                bp.StructureTimeBonus = structureTimeBonus;
+                bp.RigTimeBonus = rigTimeBonus;
+                bp.IndustryLevel = industryLevel;
+                bp.AdvancedIndustryLevel = advancedIndustryLevel;
+                bp.ReactionStructureTimeBonus = reactionStructureTimeBonus;
+                bp.ReactionRigTimeBonus = reactionRigTimeBonus;
+                bp.ReactionLevel = reactionLevel;
 
                 if (bp.Activities?.Manufacturing?.Products != null)
                 {
@@ -369,8 +393,38 @@ namespace EVEMakeMoney.Data
                 }
             }
 
+            // 获取蓝图的基础制造时间或反应时间
             var bpTime = bp.Activities?.Manufacturing?.Time ?? bp.Activities?.Reaction?.Time ?? 0;
-            var adjustedBpTime = bpTime * teFactor;
+            // 判断是否为制造活动（非反应活动）
+            bool isManufacturing = bp.Activities?.Manufacturing != null;
+            
+            decimal adjustedBpTime;
+            if (isManufacturing)
+            {
+                // 制造活动时间减免因子
+                // 建筑时间加成因子（如空堡、工程复合体等）
+                decimal structureFactor = 1.0m - (bp.StructureTimeBonus * 0.01m);
+                // 建筑插时间加成因子（如T2制造时间装置）
+                decimal rigFactor = 1.0m - (bp.RigTimeBonus * 0.01m);
+                // 工业学技能因子（每级减少4%时间）
+                decimal industryFactor = 1.0m - (bp.IndustryLevel * 0.04m);
+                // 高级工业学技能因子（每级减少3%时间）
+                decimal advancedIndustryFactor = 1.0m - (bp.AdvancedIndustryLevel * 0.03m);
+                // 应用所有减免因子计算最终制造时间（包含TE因子）
+                adjustedBpTime = bpTime * teFactor * structureFactor * rigFactor * industryFactor * advancedIndustryFactor;
+            }
+            else
+            {
+                // 反应活动时间减免因子
+                // 反应建筑时间加成因子（如反应建筑等）
+                decimal reactionStructureFactor = 1.0m - (bp.ReactionStructureTimeBonus * 0.01m);
+                // 反应建筑插时间加成因子（如T2反应时间装置）
+                decimal reactionRigFactor = 1.0m - (bp.ReactionRigTimeBonus * 0.01m);
+                // 反应效率技能因子（每级减少4%时间）
+                decimal reactionFactor = 1.0m - (bp.ReactionLevel * 0.04m);
+                // 应用所有减免因子计算最终反应时间（不包含TE因子）
+                adjustedBpTime = bpTime * reactionStructureFactor * reactionRigFactor * reactionFactor;
+            }
 
             var unitTime = outputQuantity > 0 ? (totalTime + adjustedBpTime) / outputQuantity : totalTime + adjustedBpTime;
             calculatedTimes[bp.BlueprintTypeId] = unitTime;

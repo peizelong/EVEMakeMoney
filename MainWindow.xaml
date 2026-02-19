@@ -27,16 +27,28 @@
             <TextBox x:Name="METextBox" Width="50" Height="25" Text="0" VerticalAlignment="Center"/>
             <TextBlock Text="TE:" VerticalAlignment="Center" Margin="20,0,5,0"/>
             <TextBox x:Name="TETextBox" Width="50" Height="25" Text="0" VerticalAlignment="Center"/>
-            <TextBlock x:Name="StatusText" Margin="20,0,0,0" VerticalAlignment="Center" FontSize="14"/>
+            <TextBlock Text="建筑减免%:" VerticalAlignment="Center" Margin="20,0,5,0"/>
+            <TextBox x:Name="StructureBonusTextBox" Width="50" Height="25" Text="0" VerticalAlignment="Center"/>
+            <TextBlock Text="插减免%:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <TextBox x:Name="RigBonusTextBox" Width="50" Height="25" Text="0" VerticalAlignment="Center"/>
+            <TextBlock Text="工业等级:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <TextBox x:Name="IndustryLevelTextBox" Width="40" Height="25" Text="5" VerticalAlignment="Center"/>
+            <TextBlock Text="高级工业:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <TextBox x:Name="AdvancedIndustryLevelTextBox" Width="40" Height="25" Text="5" VerticalAlignment="Center"/>
+            <TextBlock Text="反应建筑%:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <TextBox x:Name="ReactionStructureBonusTextBox" Width="50" Height="25" Text="0" VerticalAlignment="Center"/>
+            <TextBlock Text="反应插%:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <TextBox x:Name="ReactionRigBonusTextBox" Width="50" Height="25" Text="0" VerticalAlignment="Center"/>
+            <TextBlock Text="反应等级:" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <TextBox x:Name="ReactionLevelTextBox" Width="40" Height="25" Text="5" VerticalAlignment="Center"/>
         </StackPanel>
-
-        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10,0,10,10">
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                <TextBlock Text="搜索:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBox x:Name="SearchBox" Width="300" Height="25" TextChanged="SearchBox_TextChanged"/>
-            </StackPanel>
-            <ProgressBar x:Name="MarketProgress" Height="20" Visibility="Collapsed"/>
-            <TextBlock x:Name="ProgressText" Visibility="Collapsed" Margin="0,5,0,0"/>
+        
+        <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="10,0,10,10" Orientation="Horizontal">
+            <TextBlock x:Name="StatusText" VerticalAlignment="Center" FontSize="14"/>
+            <TextBlock Text="搜索:" VerticalAlignment="Center" Margin="30,0,10,0"/>
+            <TextBox x:Name="SearchBox" Width="300" Height="25" TextChanged="SearchBox_TextChanged"/>
+            <ProgressBar x:Name="MarketProgress" Height="20" Width="200" Visibility="Collapsed" Margin="20,0,0,0"/>
+            <TextBlock x:Name="ProgressText" Visibility="Collapsed" Margin="10,0,0,0" VerticalAlignment="Center"/>
         </StackPanel>
         
         <DataGrid x:Name="BlueprintGrid" Grid.Row="2" Grid.Column="0" Margin="10" AutoGenerateColumns="False" IsReadOnly="True" SelectionChanged="BlueprintGrid_SelectionChanged">
