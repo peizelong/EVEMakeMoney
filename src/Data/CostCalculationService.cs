@@ -25,7 +25,8 @@ namespace EVEMakeMoney.Data
         {
             var productToBlueprint = new Dictionary<long, Blueprint>();
             var typeIdToMaterialBlueprints = new Dictionary<long, List<Blueprint>>();
-            var t1ToT2Blueprints = new HashSet<long>();
+            var t2Blueprints = new HashSet<long>();
+            var t2BlueprintToT1Product = new Dictionary<long, long>();
             var manufacturedProductTypeIds = new HashSet<long>();
 
             foreach (var bp in blueprints)
@@ -34,7 +35,7 @@ namespace EVEMakeMoney.Data
                 {
                     foreach (var product in bp.Activities.Invention.Products)
                     {
-                        t1ToT2Blueprints.Add(product.TypeId);
+                        t2Blueprints.Add(product.TypeId);
                     }
                 }
 
@@ -43,6 +44,13 @@ namespace EVEMakeMoney.Data
                     foreach (var product in bp.Activities.Manufacturing.Products)
                     {
                         manufacturedProductTypeIds.Add(product.TypeId);
+                        if (bp.Activities?.Invention?.Products != null)
+                        {
+                            foreach (var t2BpProduct in bp.Activities.Invention.Products)
+                            {
+                                t2BlueprintToT1Product[t2BpProduct.TypeId] = product.TypeId;
+                            }
+                        }
                     }
                 }
 
@@ -64,7 +72,7 @@ namespace EVEMakeMoney.Data
                     bp.ME = settings.ME;
                     bp.TE = settings.TE;
                 }
-                else if (t1ToT2Blueprints.Contains(bp.BlueprintTypeId))
+                else if (t2Blueprints.Contains(bp.BlueprintTypeId))
                 {
                     bp.ME = 2;
                     bp.TE = 2;
@@ -134,7 +142,7 @@ namespace EVEMakeMoney.Data
 
             foreach (var bp in sortedBlueprints)
             {
-                var cost = CalculateBlueprintCost(bp, costs, marketPrices, productToBlueprint, calculated, t1ToT2Blueprints, manufacturedProductTypeIds);
+                var cost = CalculateBlueprintCost(bp, costs, marketPrices, productToBlueprint, calculated, t2Blueprints, t2BlueprintToT1Product, manufacturedProductTypeIds);
                 costs[bp.BlueprintTypeId] = cost;
                 calculated.Add(bp.BlueprintTypeId);
             }
@@ -150,7 +158,8 @@ namespace EVEMakeMoney.Data
         {
             var productToBlueprint = new Dictionary<long, Blueprint>();
             var typeIdToMaterialBlueprints = new Dictionary<long, List<Blueprint>>();
-            var t1ToT2Blueprints = new HashSet<long>();
+            var t2Blueprints = new HashSet<long>();
+            var t2BlueprintToT1Product = new Dictionary<long, long>();
             var manufacturedProductTypeIds = new HashSet<long>();
 
             foreach (var bp in blueprints)
@@ -159,7 +168,7 @@ namespace EVEMakeMoney.Data
                 {
                     foreach (var product in bp.Activities.Invention.Products)
                     {
-                        t1ToT2Blueprints.Add(product.TypeId);
+                        t2Blueprints.Add(product.TypeId);
                     }
                 }
 
@@ -168,6 +177,13 @@ namespace EVEMakeMoney.Data
                     foreach (var product in bp.Activities.Manufacturing.Products)
                     {
                         manufacturedProductTypeIds.Add(product.TypeId);
+                        if (bp.Activities?.Invention?.Products != null)
+                        {
+                            foreach (var t2BpProduct in bp.Activities.Invention.Products)
+                            {
+                                t2BlueprintToT1Product[t2BpProduct.TypeId] = product.TypeId;
+                            }
+                        }
                     }
                 }
 
@@ -189,7 +205,7 @@ namespace EVEMakeMoney.Data
                     bp.ME = settings.ME;
                     bp.TE = settings.TE;
                 }
-                else if (t1ToT2Blueprints.Contains(bp.BlueprintTypeId))
+                else if (t2Blueprints.Contains(bp.BlueprintTypeId))
                 {
                     bp.ME = 2;
                     bp.TE = 2;
@@ -252,7 +268,7 @@ namespace EVEMakeMoney.Data
 
             foreach (var bp in sortedBlueprints)
             {
-                var time = CalculateBlueprintTime(bp, times, productToBlueprint, calculated, t1ToT2Blueprints, manufacturedProductTypeIds);
+                var time = CalculateBlueprintTime(bp, times, productToBlueprint, calculated, t2Blueprints, t2BlueprintToT1Product, manufacturedProductTypeIds);
                 times[bp.BlueprintTypeId] = time;
                 calculated.Add(bp.BlueprintTypeId);
             }
@@ -266,6 +282,7 @@ namespace EVEMakeMoney.Data
             Dictionary<long, Blueprint> productToBlueprint,
             HashSet<long> calculated,
             HashSet<long> t2Blueprints,
+            Dictionary<long, long> t2BlueprintToT1Product,
             HashSet<long> manufacturedProductTypeIds)
         {
             decimal totalTime = 0;
@@ -292,6 +309,11 @@ namespace EVEMakeMoney.Data
                 teFactor = 0.80m;
 
             bool isT2Blueprint = t2Blueprints.Contains(bp.BlueprintTypeId);
+            long t1ProductTypeId = 0;
+            if (isT2Blueprint)
+            {
+                t2BlueprintToT1Product.TryGetValue(bp.BlueprintTypeId, out t1ProductTypeId);
+            }
 
             if (bp.Activities?.Manufacturing?.Materials != null)
             {
@@ -301,14 +323,9 @@ namespace EVEMakeMoney.Data
                         continue;
 
                     decimal materialQuantity;
-                    bool isManufacturedProduct = manufacturedProductTypeIds.Contains(material.TypeId);
+                    bool isT1PrototypeProduct = (material.TypeId == t1ProductTypeId);
 
-                    if (isT2Blueprint && !isManufacturedProduct)
-                    {
-                        materialQuantity = outputQuantity * material.Quantity * (1.0m - (bp.ME * 0.01m));
-                        materialQuantity = Math.Ceiling(materialQuantity);
-                    }
-                    else if (isT2Blueprint && isManufacturedProduct)
+                    if (isT1PrototypeProduct)
                     {
                         materialQuantity = outputQuantity * material.Quantity;
                         materialQuantity = Math.Ceiling(materialQuantity);
@@ -330,7 +347,7 @@ namespace EVEMakeMoney.Data
                         }
                         else
                         {
-                            var subTime = CalculateBlueprintTime(materialBp, calculatedTimes, productToBlueprint, calculated, t2Blueprints, manufacturedProductTypeIds);
+                            var subTime = CalculateBlueprintTime(materialBp, calculatedTimes, productToBlueprint, calculated, t2Blueprints, t2BlueprintToT1Product, manufacturedProductTypeIds);
                             materialTime = subTime * materialQuantity;
                         }
                     }
@@ -351,14 +368,9 @@ namespace EVEMakeMoney.Data
                         continue;
 
                     decimal materialQuantity;
-                    bool isManufacturedProduct = manufacturedProductTypeIds.Contains(material.TypeId);
+                    bool isT1PrototypeProduct = (material.TypeId == t1ProductTypeId);
 
-                    if (isT2Blueprint && !isManufacturedProduct)
-                    {
-                        materialQuantity = outputQuantity * material.Quantity * (1.0m - (bp.ME * 0.01m));
-                        materialQuantity = Math.Ceiling(materialQuantity);
-                    }
-                    else if (isT2Blueprint && isManufacturedProduct)
+                    if (isT1PrototypeProduct)
                     {
                         materialQuantity = outputQuantity * material.Quantity;
                         materialQuantity = Math.Ceiling(materialQuantity);
@@ -380,7 +392,7 @@ namespace EVEMakeMoney.Data
                         }
                         else
                         {
-                            var subTime = CalculateBlueprintTime(materialBp, calculatedTimes, productToBlueprint, calculated, t2Blueprints, manufacturedProductTypeIds);
+                            var subTime = CalculateBlueprintTime(materialBp, calculatedTimes, productToBlueprint, calculated, t2Blueprints, t2BlueprintToT1Product, manufacturedProductTypeIds);
                             materialTime = subTime * materialQuantity;
                         }
                     }
@@ -492,6 +504,7 @@ namespace EVEMakeMoney.Data
             Dictionary<long, Blueprint> productToBlueprint,
             HashSet<long> calculated,
             HashSet<long> t2Blueprints,
+            Dictionary<long, long> t2BlueprintToT1Product,
             HashSet<long> manufacturedProductTypeIds)
         {
             decimal totalCost = 0;
@@ -517,11 +530,12 @@ namespace EVEMakeMoney.Data
             if (meFactor < 0.01m)
                 meFactor = 0.01m;
 
-            decimal teFactor = 1.0m - (bp.TE * 0.01m);
-            if (teFactor < 0.80m)
-                teFactor = 0.80m;
-
             bool isT2Blueprint = t2Blueprints.Contains(bp.BlueprintTypeId);
+            long t1ProductTypeId = 0;
+            if (isT2Blueprint)
+            {
+                t2BlueprintToT1Product.TryGetValue(bp.BlueprintTypeId, out t1ProductTypeId);
+            }
 
             if (bp.Activities?.Manufacturing?.Materials != null)
             {
@@ -531,14 +545,9 @@ namespace EVEMakeMoney.Data
                         continue;
 
                     decimal materialQuantity;
-                    bool isManufacturedProduct = manufacturedProductTypeIds.Contains(material.TypeId);
+                    bool isT1PrototypeProduct = (material.TypeId == t1ProductTypeId);
 
-                    if (isT2Blueprint && !isManufacturedProduct)
-                    {
-                        materialQuantity = outputQuantity * material.Quantity * meFactor;
-                        materialQuantity = Math.Ceiling(materialQuantity);
-                    }
-                    else if (isT2Blueprint && isManufacturedProduct)
+                    if (isT1PrototypeProduct)
                     {
                         materialQuantity = outputQuantity * material.Quantity;
                         materialQuantity = Math.Ceiling(materialQuantity);
@@ -560,7 +569,7 @@ namespace EVEMakeMoney.Data
                         }
                         else
                         {
-                            var subCost = CalculateBlueprintCost(materialBp, calculatedCosts, marketPrices, productToBlueprint, calculated, t2Blueprints, manufacturedProductTypeIds);
+                            var subCost = CalculateBlueprintCost(materialBp, calculatedCosts, marketPrices, productToBlueprint, calculated, t2Blueprints, t2BlueprintToT1Product, manufacturedProductTypeIds);
                             materialCost = subCost * materialQuantity;
                         }
                     }
@@ -582,14 +591,9 @@ namespace EVEMakeMoney.Data
                         continue;
 
                     decimal materialQuantity;
-                    bool isManufacturedProduct = manufacturedProductTypeIds.Contains(material.TypeId);
+                    bool isT1PrototypeProduct = (material.TypeId == t1ProductTypeId);
 
-                    if (isT2Blueprint && !isManufacturedProduct)
-                    {
-                        materialQuantity = outputQuantity * material.Quantity * meFactor;
-                        materialQuantity = Math.Ceiling(materialQuantity);
-                    }
-                    else if (isT2Blueprint && isManufacturedProduct)
+                    if (isT1PrototypeProduct)
                     {
                         materialQuantity = outputQuantity * material.Quantity;
                         materialQuantity = Math.Ceiling(materialQuantity);
@@ -611,7 +615,7 @@ namespace EVEMakeMoney.Data
                         }
                         else
                         {
-                            var subCost = CalculateBlueprintCost(materialBp, calculatedCosts, marketPrices, productToBlueprint, calculated, t2Blueprints, manufacturedProductTypeIds);
+                            var subCost = CalculateBlueprintCost(materialBp, calculatedCosts, marketPrices, productToBlueprint, calculated, t2Blueprints, t2BlueprintToT1Product, manufacturedProductTypeIds);
                             materialCost = subCost * materialQuantity;
                         }
                     }

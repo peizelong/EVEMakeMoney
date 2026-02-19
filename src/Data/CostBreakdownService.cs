@@ -28,7 +28,8 @@ namespace EVEMakeMoney.Data
         private readonly TypeNameService _typeNameService;
         private Dictionary<long, Blueprint> _productToBlueprint;
         private Dictionary<long, double> _marketPrices;
-        private Dictionary<long, Blueprint> _t1ToT2Blueprint;
+        private Dictionary<long, long> _t2BlueprintToT1Product;
+        private HashSet<long> _t2Blueprints;
         private Dictionary<long, Blueprint> _blueprints;
 
         public CostBreakdownService(EVEMakeMoneyDbContext db, TypeNameService typeNameService)
@@ -40,7 +41,8 @@ namespace EVEMakeMoney.Data
         public CostBreakdownItem GetCostBreakdown(long blueprintTypeId, List<Blueprint> blueprints)
         {
             _productToBlueprint = new Dictionary<long, Blueprint>();
-            _t1ToT2Blueprint = new Dictionary<long, Blueprint>();
+            _t2BlueprintToT1Product = new Dictionary<long, long>();
+            _t2Blueprints = new HashSet<long>();
             _marketPrices = GetMarketPrices();
             _blueprints = blueprints.ToDictionary(b => b.BlueprintTypeId, b => b);
 
@@ -66,7 +68,18 @@ namespace EVEMakeMoney.Data
                 {
                     foreach (var product in bp.Activities.Invention.Products)
                     {
-                        _t1ToT2Blueprint[product.TypeId] = bp;
+                        _t2Blueprints.Add(product.TypeId);
+                    }
+                    
+                    if (bp.Activities?.Manufacturing?.Products != null)
+                    {
+                        foreach (var t1Product in bp.Activities.Manufacturing.Products)
+                        {
+                            foreach (var t2BpProduct in bp.Activities.Invention.Products)
+                            {
+                                _t2BlueprintToT1Product[t2BpProduct.TypeId] = t1Product.TypeId;
+                            }
+                        }
                     }
                 }
             }
@@ -242,16 +255,16 @@ namespace EVEMakeMoney.Data
             if (meFactor < 0.01m)
                 meFactor = 0.01m;
 
-            bool isT2Blueprint = _t1ToT2Blueprint.ContainsKey(parentBp.BlueprintTypeId);
-            bool isManufacturedProduct = _productToBlueprint.ContainsKey(typeId);
+            bool isT2Blueprint = _t2Blueprints.Contains(parentBp.BlueprintTypeId);
+            long t1ProductTypeId = 0;
+            if (isT2Blueprint)
+            {
+                _t2BlueprintToT1Product.TryGetValue(parentBp.BlueprintTypeId, out t1ProductTypeId);
+            }
+            bool isT1PrototypeProduct = (typeId == t1ProductTypeId);
 
             decimal materialQuantity;
-            if (isT2Blueprint && !isManufacturedProduct)
-            {
-                materialQuantity = parentOutputQuantity * (decimal)material.Quantity * meFactor;
-                materialQuantity = Math.Ceiling(materialQuantity);
-            }
-            else if (isT2Blueprint && isManufacturedProduct)
+            if (isT1PrototypeProduct)
             {
                 materialQuantity = parentOutputQuantity * (decimal)material.Quantity;
                 materialQuantity = Math.Ceiling(materialQuantity);
