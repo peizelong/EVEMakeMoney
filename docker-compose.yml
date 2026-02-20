@@ -1,0 +1,33 @@
+services:
+  backend:
+    build:
+      context: ./backend/EVEMakeMoney.Api
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Jwt__Key=${JWT_KEY:-ChangeThisSecretKeyInProduction}
+      - ConnectionStrings__DefaultConnection=Data Source=/data/EVEMakeMoney.db
+    volumes:
+      - ./sde:/app/sde:ro
+      - eve-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/blueprints"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  eve-data:

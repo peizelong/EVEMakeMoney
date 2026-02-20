@@ -1,0 +1,6 @@
+@EVEMakeMoney.Api_HostAddress = http://localhost:5087
+
+GET {{EVEMakeMoney.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
