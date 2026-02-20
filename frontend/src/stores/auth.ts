@@ -9,6 +9,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!accessToken.value)
 
+  const username = computed(() => user.value?.username ?? '')
+
   async function login(username: string, password: string) {
     const response = await authApi.login(username, password)
     setAuth(response.accessToken, response.refreshToken, response.user)
@@ -62,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken,
     refreshToken,
     isAuthenticated,
+    username,
     login,
     register,
     logout,

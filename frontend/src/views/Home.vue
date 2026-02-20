@@ -224,15 +224,15 @@ const defaultProps = {
 }
 
 const calcParams = ref<CalculateCostsRequest>({
-  me: 0,
-  te: 0,
-  structureBonus: 0,
-  rigBonus: 0,
-  industryLevel: 5,
-  advancedIndustryLevel: 0,
-  reactionStructureBonus: 0,
-  reactionRigBonus: 0,
-  reactionLevel: 0
+  ME: 0,
+  TE: 0,
+  StructureBonus: 0,
+  RigBonus: 0,
+  IndustryLevel: 5,
+  AdvancedIndustryLevel: 0,
+  ReactionStructureBonus: 0,
+  ReactionRigBonus: 0,
+  ReactionLevel: 0
 })
 
 let searchTimeout: number | null = null

@@ -125,15 +125,15 @@ export interface MarketPopularityResult {
 }
 
 export interface CalculateCostsRequest {
-  me: number
-  te: number
-  structureBonus: number
-  rigBonus: number
-  industryLevel: number
-  advancedIndustryLevel: number
-  reactionStructureBonus: number
-  reactionRigBonus: number
-  reactionLevel: number
+  ME: number
+  TE: number
+  StructureBonus: number
+  RigBonus: number
+  IndustryLevel: number
+  AdvancedIndustryLevel: number
+  ReactionStructureBonus: number
+  ReactionRigBonus: number
+  ReactionLevel: number
 }
 
 export const authApi = {
