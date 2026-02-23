@@ -3383,19 +3383,19 @@
   },
   "packageFolders": {
     "C:\\Users\\12613\\.nuget\\packages\\": {},
-    "D:\\studio\\Visual Studio 2026 Shared\\NuGetPackages": {}
+    "F:\\Studio\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\EVEMakeMoney.Api.csproj",
+      "projectUniqueName": "F:\\Studio\\prj\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\EVEMakeMoney.Api.csproj",
       "projectName": "EVEMakeMoney.Api",
-      "projectPath": "D:\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\EVEMakeMoney.Api.csproj",
+      "projectPath": "F:\\Studio\\prj\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\EVEMakeMoney.Api.csproj",
       "packagesPath": "C:\\Users\\12613\\.nuget\\packages\\",
-      "outputPath": "D:\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\obj\\",
+      "outputPath": "F:\\Studio\\prj\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "D:\\studio\\Visual Studio 2026 Shared\\NuGetPackages"
+        "F:\\Studio\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
         "C:\\Users\\12613\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -3493,7 +3493,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

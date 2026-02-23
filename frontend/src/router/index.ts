@@ -12,9 +12,31 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'Home',
-      component: () => import('../views/Home.vue'),
-      meta: { requiresAuth: false }
+      component: () => import('../views/AppLayout.vue'),
+      children: [
+        {
+          path: '',
+          name: 'Manufacturing',
+          component: () => import('../views/Manufacturing.vue')
+        },
+        {
+          path: 'character',
+          name: 'Character',
+          component: () => import('../views/Character.vue'),
+          meta: { requiresAuth: true }
+        },
+        {
+          path: 'market',
+          name: 'Market',
+          component: () => import('../views/Market.vue')
+        },
+        {
+          path: 'profile',
+          name: 'Profile',
+          component: () => import('../views/Profile.vue'),
+          meta: { requiresAuth: true }
+        }
+      ]
     }
   ]
 })
@@ -29,7 +51,7 @@ router.beforeEach(async (to, _from, next) => {
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
   } else if (to.meta.guest && authStore.isAuthenticated) {
-    next({ name: 'Home' })
+    next({ name: 'Manufacturing' })
   } else {
     next()
   }

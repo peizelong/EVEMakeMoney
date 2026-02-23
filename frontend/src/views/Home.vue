@@ -3,8 +3,24 @@
     <header class="header">
       <h1>EVE 制造成本计算器</h1>
       <div class="user-info" v-if="authStore.isAuthenticated">
-        <span>{{ authStore.username }}</span>
-        <el-button type="primary" size="small" @click="handleLogout">退出</el-button>
+        <el-dropdown trigger="click" @command="handleUserCommand">
+          <span class="user-dropdown">
+            {{ authStore.username }}
+            <el-icon><ArrowDown /></el-icon>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="characters">
+                <el-icon><User /></el-icon>
+                绑定EVE角色
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" divided>
+                <el-icon><SwitchButton /></el-icon>
+                退出登录
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </header>
 
@@ -182,14 +198,44 @@
         </el-col>
       </el-row>
     </main>
+
+    <el-dialog v-model="characterDialogVisible" title="绑定EVE角色" width="500px">
+      <div class="character-dialog-content">
+        <p class="dialog-desc">
+          绑定EVE角色后，可以使用该角色的ESI权限进行游戏内数据查询。
+          支持绑定多个EVE角色。
+        </p>
+
+        <el-button type="primary" @click="bindCharacter" class="bind-btn">
+          绑定新角色
+        </el-button>
+
+        <div class="character-list" v-if="authStore.characters.length > 0">
+          <h4>已绑定的角色</h4>
+          <el-table :data="authStore.characters" size="small">
+            <el-table-column prop="characterName" label="角色名称" />
+            <el-table-column prop="corporationName" label="公司" />
+            <el-table-column label="操作" width="100">
+              <template #default="{ row }">
+                <el-button type="danger" size="small" link @click="unbindCharacter(row.characterId)">
+                  解绑
+                </el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+
+        <el-empty v-else description="暂无绑定的角色" :image-size="60" />
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Search } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { Search, ArrowDown, User, SwitchButton } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 import { blueprintApi, marketApi, marketDataApi, type Blueprint, type CostBreakdownItem, type CalculateCostsRequest } from '../api'
 
@@ -217,6 +263,8 @@ const marketDataStatus = ref<{
   historyCount: number;
   hasMarketData: boolean;
 }>({ orderCount: 0, historyCount: 0, hasMarketData: false })
+
+const characterDialogVisible = ref(false)
 
 const defaultProps = {
   children: 'children',
@@ -377,6 +425,40 @@ async function handleLogout() {
   await authStore.logout()
   ElMessage.success('已退出登录')
   router.push('/login')
+}
+
+async function handleUserCommand(command: string) {
+  if (command === 'logout') {
+    await handleLogout()
+  } else if (command === 'characters') {
+    showCharacterDialog()
+  }
+}
+
+function showCharacterDialog() {
+  authStore.fetchCharacters()
+  characterDialogVisible.value = true
+}
+
+async function bindCharacter() {
+  try {
+    await authStore.bindCharacter()
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '获取授权链接失败')
+  }
+}
+
+async function unbindCharacter(characterId: number) {
+  try {
+    await ElMessageBox.confirm('确定要解绑这个EVE角色吗？', '确认解绑', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await authStore.unbindCharacter(characterId)
+    ElMessage.success('已解绑')
+  } catch {
+  }
 }
 
 async function fetchMarketOrders() {
@@ -553,13 +635,6 @@ onMounted(async () => {
 }
 
 .button-group {
-  margin-top: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.button-group {
   margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
@@ -607,10 +682,6 @@ onMounted(async () => {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding-left: 16px;
-}
-
-.main-content {
-  margin-bottom: 16px;
 }
 
 .main-content {
@@ -763,6 +834,33 @@ onMounted(async () => {
 :deep(.el-tag--success) {
   background: #111111;
   color: #ffffff;
+}
+
+.user-dropdown {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.character-dialog-content {
+  padding: 10px 0;
+}
+
+.dialog-desc {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.bind-btn {
+  margin-bottom: 20px;
+}
+
+.character-list h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #333;
 }
 
 @media (max-width: 768px) {

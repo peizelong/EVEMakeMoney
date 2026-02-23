@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EVEMakeMoney.Api.Services;
+using EVEMakeMoney.Api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +11,12 @@ namespace EVEMakeMoney.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
+        private readonly EVESsoService _ssoService;
 
-        public AuthController(AuthService authService)
+        public AuthController(AuthService authService, EVESsoService ssoService)
         {
             _authService = authService;
+            _ssoService = ssoService;
         }
 
         [HttpPost("register")]
@@ -80,6 +83,99 @@ namespace EVEMakeMoney.Api.Controllers
                 Email = email ?? ""
             });
         }
+
+        [Authorize]
+        [HttpGet("sso/url")]
+        public ActionResult<SsoUrlResponse> GetSsoUrl()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var url = _ssoService.GetAuthorizationUrl(userId);
+            return Ok(new SsoUrlResponse { Url = url });
+        }
+
+        [HttpGet("/callback")]
+        public async Task<IActionResult> SsoCallback(
+            [FromQuery] string? code, 
+            [FromQuery] string? state, 
+            [FromQuery] string? error,
+            [FromQuery] string? error_description)
+        {
+            var errorMessage = !string.IsNullOrEmpty(error_description) ? error_description : 
+                              !string.IsNullOrEmpty(error) ? error : null;
+
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                return Redirect($"{_ssoService.GetFrontendUrl()}?error={Uri.EscapeDataString(errorMessage)}");
+            }
+
+            if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(state))
+            {
+                return Redirect($"{_ssoService.GetFrontendUrl()}?error=invalid_callback");
+            }
+
+            var (success, message, character) = await _ssoService.HandleCallbackAsync(code, state);
+
+            if (!success)
+            {
+                return Redirect($"{_ssoService.GetFrontendUrl()}?error={Uri.EscapeDataString(message)}");
+            }
+
+            return Redirect($"{_ssoService.GetFrontendUrl()}?success=true&characterId={character?.CharacterId}&characterName={Uri.EscapeDataString(character?.CharacterName ?? "")}");
+        }
+
+        [Authorize]
+        [HttpGet("characters")]
+        public async Task<ActionResult<List<CharacterInfo>>> GetCharacters()
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var characters = await _ssoService.GetUserCharactersAsync(userId);
+
+            return Ok(characters.Select(c => new CharacterInfo
+            {
+                Id = c.Id,
+                CharacterId = c.CharacterId,
+                CharacterName = c.CharacterName,
+                CorporationName = c.CorporationName,
+                CorporationId = c.CorporationId,
+                AllianceName = c.AllianceName,
+                AllianceId = c.AllianceId,
+                CreatedAt = c.CreatedAt,
+                LastUsedAt = c.LastUsedAt
+            }));
+        }
+
+        [Authorize]
+        [HttpDelete("characters/{characterId}")]
+        public async Task<ActionResult> UnbindCharacter(long characterId)
+        {
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var success = await _ssoService.UnbindCharacterAsync(userId, characterId);
+
+            if (!success)
+            {
+                return NotFound(new { message = "Character not found" });
+            }
+
+            return Ok(new { message = "Character unbound successfully" });
+        }
+    }
+
+    public class SsoUrlResponse
+    {
+        public string Url { get; set; } = string.Empty;
+    }
+
+    public class CharacterInfo
+    {
+        public int Id { get; set; }
+        public long CharacterId { get; set; }
+        public string CharacterName { get; set; } = string.Empty;
+        public string? CorporationName { get; set; }
+        public long? CorporationId { get; set; }
+        public string? AllianceName { get; set; }
+        public long? AllianceId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? LastUsedAt { get; set; }
     }
 
     public class RegisterRequest

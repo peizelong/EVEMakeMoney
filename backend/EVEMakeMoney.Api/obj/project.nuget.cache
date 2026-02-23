@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9yiV2fxDPVc=",
+  "dgSpecHash": "wA78nSqq5Uc=",
   "success": true,
-  "projectFilePath": "D:\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\EVEMakeMoney.Api.csproj",
+  "projectFilePath": "F:\\Studio\\prj\\EVEMakeMoney\\backend\\EVEMakeMoney.Api\\EVEMakeMoney.Api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\12613\\.nuget\\packages\\aspnetcoreratelimit\\5.0.0\\aspnetcoreratelimit.5.0.0.nupkg.sha512",
     "C:\\Users\\12613\\.nuget\\packages\\bcrypt.net-next\\4.1.0\\bcrypt.net-next.4.1.0.nupkg.sha512",

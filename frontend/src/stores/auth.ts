@@ -1,9 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authApi, type User } from '../api'
+import { authApi, type User, type CharacterInfo } from '../api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const characters = ref<CharacterInfo[]>([])
   const accessToken = ref<string | null>(localStorage.getItem('accessToken'))
   const refreshToken = ref<string | null>(localStorage.getItem('refreshToken'))
 
@@ -55,12 +56,36 @@ export const useAuthStore = defineStore('auth', () => {
     accessToken.value = null
     refreshToken.value = null
     user.value = null
+    characters.value = []
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
   }
 
+  async function fetchCharacters() {
+    if (!accessToken.value) return []
+    try {
+      const chars = await authApi.getCharacters()
+      characters.value = chars
+      return chars
+    } catch {
+      return []
+    }
+  }
+
+  async function bindCharacter(): Promise<string> {
+    const { url } = await authApi.getSsoUrl()
+    window.location.href = url
+    return url
+  }
+
+  async function unbindCharacter(characterId: number) {
+    await authApi.unbindCharacter(characterId)
+    characters.value = characters.value.filter(c => c.characterId !== characterId)
+  }
+
   return {
     user,
+    characters,
     accessToken,
     refreshToken,
     isAuthenticated,
@@ -69,6 +94,9 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchUser,
+    fetchCharacters,
+    bindCharacter,
+    unbindCharacter,
     setAuth,
     clearAuth
   }

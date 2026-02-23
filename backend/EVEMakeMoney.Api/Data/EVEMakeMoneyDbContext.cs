@@ -11,6 +11,7 @@ namespace EVEMakeMoney.Api.Data
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<UserBlueprintSettingEntity> UserBlueprintSettings { get; set; }
         public DbSet<CalculationHistoryEntity> CalculationHistory { get; set; }
+        public DbSet<CharacterEntity> Characters { get; set; }
 
         public EVEMakeMoneyDbContext(DbContextOptions<EVEMakeMoneyDbContext> options)
             : base(options)
@@ -37,6 +38,14 @@ namespace EVEMakeMoney.Api.Data
 
             modelBuilder.Entity<UserBlueprintSettingEntity>()
                 .HasIndex(x => new { x.UserId, x.BlueprintTypeId })
+                .IsUnique();
+
+            modelBuilder.Entity<CharacterEntity>()
+                .HasIndex(x => x.CharacterId)
+                .IsUnique();
+
+            modelBuilder.Entity<CharacterEntity>()
+                .HasIndex(x => new { x.UserId, x.CharacterId })
                 .IsUnique();
         }
     }

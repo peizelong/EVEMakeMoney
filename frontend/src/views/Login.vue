@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { User, Lock, Message } from '@element-plus/icons-vue'
@@ -84,6 +84,20 @@ const form = reactive({
   email: '',
   password: '',
   confirmPassword: ''
+})
+
+onMounted(() => {
+  const success = route.query.success as string
+  const error = route.query.error as string
+  const characterName = route.query.characterName as string
+
+  if (success === 'true' && characterName) {
+    ElMessage.success(`角色 ${characterName} 绑定成功`)
+  }
+
+  if (error) {
+    ElMessage.error(decodeURIComponent(error))
+  }
 })
 
 const validateConfirmPassword = (_rule: any, value: string, callback: any) => {

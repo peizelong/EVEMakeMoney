@@ -50,6 +50,20 @@ export interface User {
   id: number
   username: string
   email: string
+  createdAt?: string
+  lastLoginAt?: string
+}
+
+export interface CharacterInfo {
+  id: number
+  characterId: number
+  characterName: string
+  corporationName?: string
+  corporationId?: number
+  allianceName?: string
+  allianceId?: number
+  createdAt: string
+  lastUsedAt?: string
 }
 
 export interface AuthResponse {
@@ -154,6 +168,20 @@ export const authApi = {
   async getCurrentUser(): Promise<User> {
     const response = await api.get<User>('/auth/me')
     return response.data
+  },
+
+  async getSsoUrl(): Promise<{ url: string }> {
+    const response = await api.get<{ url: string }>('/auth/sso/url')
+    return response.data
+  },
+
+  async getCharacters(): Promise<CharacterInfo[]> {
+    const response = await api.get<CharacterInfo[]>('/auth/characters')
+    return response.data
+  },
+
+  async unbindCharacter(characterId: number): Promise<void> {
+    await api.delete(`/auth/characters/${characterId}`)
   }
 }
 
@@ -235,6 +263,113 @@ export const marketDataApi = {
 
   async getMarketPrices(): Promise<Record<number, number>> {
     const response = await api.get<Record<number, number>>('/marketdata/prices')
+    return response.data
+  }
+}
+
+export enum AssetOwnerType {
+  Character = 0,
+  Corporation = 1
+}
+
+export enum AssetLocationType {
+  Container = 0,
+  AssetSafety = 1,
+  System = 2,
+  AbyssalSystem = 3,
+  Station = 4,
+  Structure = 5,
+  Other = 6
+}
+
+export interface ResolvedLocation {
+  locationId: number
+  name: string
+  typeId: number | null
+  systemId: number | null
+  locationTypeName: string
+}
+
+export interface AssetWithLocation {
+  itemId: number
+  typeId: number
+  quantity: number
+  locationId: number
+  locationFlag: string
+  isSingleton: boolean
+  locationType: AssetLocationType
+  ownerType: AssetOwnerType
+  ownerId: number
+  corporationId: number | null
+  name: string | null
+  typeName: string
+  groupName?: string
+  categoryName?: string
+  volume: number
+  iconUrl?: string
+  graphicUrl?: string
+  estimatedValue: number
+  unitPrice: number
+  resolvedLocation?: ResolvedLocation
+}
+
+export interface AssetTreeNode {
+  itemId: number
+  typeId: number
+  quantity: number
+  locationId: number
+  locationFlag: string
+  isSingleton: boolean
+  name: string | null
+  typeName: string
+  groupName?: string
+  categoryName?: string
+  volume: number
+  iconUrl?: string
+  graphicUrl?: string
+  estimatedValue: number
+  unitPrice: number
+  ownerType: AssetOwnerType
+  ownerId: number
+  resolvedLocation?: ResolvedLocation
+  children: AssetTreeNode[]
+}
+
+export interface AssetGroupedByResolvedLocation {
+  locationId: number
+  locationName: string
+  locationType: string
+  systemId: number | null
+  assets: AssetWithLocation[]
+  totalValue: number
+  itemCount: number
+}
+
+export interface AssetSummaryResponse {
+  totalItems: number
+  totalValue: number
+  totalVolume: number
+  locationCount: number
+}
+
+export const assetApi = {
+  async getAssets(characterId: number): Promise<AssetWithLocation[]> {
+    const response = await api.get<AssetWithLocation[]>(`/assets/${characterId}`)
+    return response.data
+  },
+
+  async getAssetsAsTree(characterId: number): Promise<AssetTreeNode[]> {
+    const response = await api.get<AssetTreeNode[]>(`/assets/tree/${characterId}`)
+    return response.data
+  },
+
+  async getAssetsByLocation(characterId: number): Promise<AssetGroupedByResolvedLocation[]> {
+    const response = await api.get<AssetGroupedByResolvedLocation[]>(`/assets/by-location/${characterId}`)
+    return response.data
+  },
+
+  async getAssetSummary(characterId: number): Promise<AssetSummaryResponse> {
+    const response = await api.get<AssetSummaryResponse>(`/assets/summary/${characterId}`)
     return response.data
   }
 }

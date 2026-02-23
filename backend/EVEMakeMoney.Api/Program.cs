@@ -84,6 +84,8 @@ builder.Services.AddScoped<CostBreakdownService>();
 builder.Services.AddScoped<MarketPopularityService>();
 builder.Services.AddScoped<MarketDataService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<EVESsoService>();
+builder.Services.AddScoped<AssetService>();
 
 builder.Services.AddScoped<BlueprintCacheService>();
 

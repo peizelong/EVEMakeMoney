@@ -1,0 +1,6 @@
+F:\Studio\prj\EVEMakeMoney\src\EVEStandard\obj\Debug\net10.0\EVEStandard.csproj.AssemblyReference.cache
+F:\Studio\prj\EVEMakeMoney\src\EVEStandard\obj\Debug\net10.0\EVEStandard.GeneratedMSBuildEditorConfig.editorconfig
+F:\Studio\prj\EVEMakeMoney\src\EVEStandard\obj\Debug\net10.0\EVEStandard.AssemblyInfoInputs.cache
+F:\Studio\prj\EVEMakeMoney\src\EVEStandard\obj\Debug\net10.0\EVEStandard.AssemblyInfo.cs
+F:\Studio\prj\EVEMakeMoney\src\EVEStandard\obj\Debug\net10.0\EVEStandard.csproj.CoreCompileInputs.cache
+F:\Studio\prj\EVEMakeMoney\src\EVEStandard\obj\Debug\net10.0\EVEStandard.sourcelink.json
