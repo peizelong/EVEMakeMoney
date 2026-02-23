@@ -15,67 +15,98 @@
             </template>
           </el-input>
 
-          <el-tooltip content="Material Efficiency 材料效率，每级减少1%材料需求" placement="top">
-            <el-select v-model="calcParams.me" placeholder="ME" class="param-select">
-              <el-option v-for="i in 10" :key="i-1" :label="'ME ' + (i-1)" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="Time Efficiency 时间效率，每级减少1%制造时间" placement="top">
-            <el-select v-model="calcParams.te" placeholder="TE" class="param-select">
-              <el-option v-for="i in 21" :key="i-1" :label="'TE ' + (i-1)" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="Industry 工业技能，每级减少4%制造时间" placement="top">
-            <el-select v-model="calcParams.industryLevel" placeholder="工业LV" class="param-select">
-              <el-option v-for="i in 6" :key="i-1" :label="'工业 ' + (i-1)" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="建筑时间加成（如Azumul、Sotiyo），每级减少1%制造时间" placement="top">
-            <el-select v-model="calcParams.structureBonus" placeholder="建筑时间" class="param-select">
-              <el-option v-for="i in 21" :key="i-1" :label="(i-1) + '%'" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="建筑装备RIG时间加成，每级减少5%制造时间（最大50%）" placement="top">
-            <el-select v-model="calcParams.rigBonus" placeholder="RIG时间" class="param-select">
-              <el-option v-for="i in 11" :key="i-1" :label="(i-1) * 5 + '%'" :value="(i-1) * 5" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="Advanced Industry 高级工业技能，每级减少3%制造时间" placement="top">
-            <el-select v-model="calcParams.advancedIndustryLevel" placeholder="高精工业" class="param-select">
-              <el-option v-for="i in 6" :key="i-1" :label="'高精 ' + (i-1)" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="Reaction 反应技能，每级减少4%反应时间" placement="top">
-            <el-select v-model="calcParams.reactionLevel" placeholder="反应LV" class="param-select">
-              <el-option v-for="i in 6" :key="i-1" :label="'反应 ' + (i-1)" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="反应建筑时间加成，每级减少1%反应时间" placement="top">
-            <el-select v-model="calcParams.reactionStructureBonus" placeholder="反应建筑" class="param-select">
-              <el-option v-for="i in 21" :key="i-1" :label="(i-1) + '%'" :value="i-1" />
-            </el-select>
-          </el-tooltip>
-
-          <el-tooltip content="反应建筑RIG时间加成，每级减少5%反应时间（最大50%）" placement="top">
-            <el-select v-model="calcParams.reactionRigBonus" placeholder="反应RIG" class="param-select">
-              <el-option v-for="i in 11" :key="i-1" :label="(i-1) * 5 + '%'" :value="(i-1) * 5" />
-            </el-select>
-          </el-tooltip>
-        </div>
-
-        <div class="button-group">
           <el-button type="primary" @click="loadBlueprints" :loading="loading">加载蓝图数据</el-button>
           <el-button type="success" @click="calculateCosts" :loading="calculating">计算成本</el-button>
           <el-button type="warning" @click="saveAllSettings" :loading="savingSettings" :disabled="!authStore.isAuthenticated || savedSettings.size === 0">
             保存所有ME/TE
           </el-button>
+
+          <el-collapse v-model="activeCollapse" class="bonus-collapse">
+            <el-collapse-item title="制造建筑属性设置" name="bonus-settings">
+              <div class="bonus-settings-grid">
+                <div class="bonus-group">
+                  <div class="bonus-group-title">材料效率</div>
+                  <el-tooltip content="Material Efficiency 材料效率，每级减少1%材料需求" placement="top">
+                    <el-select v-model="calcParams.me" placeholder="ME" class="param-select">
+                      <el-option v-for="i in 10" :key="i-1" :label="'ME ' + (i-1)" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">时间效率</div>
+                  <el-tooltip content="Time Efficiency 时间效率，每级减少1%制造时间" placement="top">
+                    <el-select v-model="calcParams.te" placeholder="TE" class="param-select">
+                      <el-option v-for="i in 21" :key="i-1" :label="'TE ' + (i-1)" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">工业技能</div>
+                  <el-tooltip content="Industry 工业技能，每级减少4%制造时间" placement="top">
+                    <el-select v-model="calcParams.industryLevel" placeholder="工业LV" class="param-select">
+                      <el-option v-for="i in 6" :key="i-1" :label="'工业 ' + (i-1)" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">建筑时间加成</div>
+                  <el-tooltip content="建筑时间加成（如Azumul、Sotiyo），每级减少1%制造时间" placement="top">
+                    <el-select v-model="calcParams.structureBonus" placeholder="建筑时间" class="param-select">
+                      <el-option v-for="i in 21" :key="i-1" :label="(i-1) + '%'" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">RIG时间加成</div>
+                  <el-tooltip content="建筑装备RIG时间加成，每级减少5%制造时间（最大50%）" placement="top">
+                    <el-select v-model="calcParams.rigBonus" placeholder="RIG时间" class="param-select">
+                      <el-option v-for="i in 11" :key="i-1" :label="(i-1) * 5 + '%'" :value="(i-1) * 5" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">高级工业</div>
+                  <el-tooltip content="Advanced Industry 高级工业技能，每级减少3%制造时间" placement="top">
+                    <el-select v-model="calcParams.advancedIndustryLevel" placeholder="高精工业" class="param-select">
+                      <el-option v-for="i in 6" :key="i-1" :label="'高精 ' + (i-1)" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">反应技能</div>
+                  <el-tooltip content="Reaction 反应技能，每级减少4%反应时间" placement="top">
+                    <el-select v-model="calcParams.reactionLevel" placeholder="反应LV" class="param-select">
+                      <el-option v-for="i in 6" :key="i-1" :label="'反应 ' + (i-1)" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">反应建筑加成</div>
+                  <el-tooltip content="反应建筑时间加成，每级减少1%反应时间" placement="top">
+                    <el-select v-model="calcParams.reactionStructureBonus" placeholder="反应建筑" class="param-select">
+                      <el-option v-for="i in 21" :key="i-1" :label="(i-1) + '%'" :value="i-1" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+
+                <div class="bonus-group">
+                  <div class="bonus-group-title">反应RIG加成</div>
+                  <el-tooltip content="反应建筑RIG时间加成，每级减少5%反应时间（最大50%）" placement="top">
+                    <el-select v-model="calcParams.reactionRigBonus" placeholder="反应RIG" class="param-select">
+                      <el-option v-for="i in 11" :key="i-1" :label="(i-1) * 5 + '%'" :value="(i-1) * 5" />
+                    </el-select>
+                  </el-tooltip>
+                </div>
+              </div>
+            </el-collapse-item>
+          </el-collapse>
         </div>
       </el-card>
     </div>
@@ -215,6 +246,7 @@ const costBreakdownTree = ref<any[]>([])
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalBlueprints = ref(0)
+const activeCollapse = ref<string[]>([])
 
 const savedSettings = reactive<Map<number, BlueprintSetting>>(new Map())
 
@@ -501,6 +533,38 @@ onMounted(async () => {
 
 .param-select {
   width: 100px;
+}
+
+.bonus-collapse {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.bonus-collapse :deep(.el-collapse-item__header) {
+  font-weight: 500;
+  color: #409eff;
+}
+
+.bonus-collapse :deep(.el-collapse-item__content) {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.bonus-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.bonus-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bonus-group-title {
+  font-size: 12px;
+  color: #606266;
 }
 
 .button-group {
