@@ -73,6 +73,9 @@
         <div class="button-group">
           <el-button type="primary" @click="loadBlueprints" :loading="loading">加载蓝图数据</el-button>
           <el-button type="success" @click="calculateCosts" :loading="calculating">计算成本</el-button>
+          <el-button type="warning" @click="saveAllSettings" :loading="savingSettings" :disabled="!authStore.isAuthenticated || savedSettings.size === 0">
+            保存所有ME/TE
+          </el-button>
         </div>
       </el-card>
     </div>
@@ -113,6 +116,32 @@
                 <el-tag v-if="row.activities?.invention" type="warning" size="small">T2</el-tag>
                 <el-tag v-else-if="row.activities?.reaction" type="success" size="small">反应</el-tag>
                 <el-tag v-else type="info" size="small">T1</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="ME" width="70" align="center">
+              <template #default="{ row }">
+                <el-select
+                  :model-value="getSavedME(row.blueprintTypeId)"
+                  @change="(val: number) => { saveBlueprintSettings(row.blueprintTypeId, val, getSavedTE(row.blueprintTypeId)) }"
+                  size="small"
+                  :disabled="!authStore.isAuthenticated"
+                  class="me-select"
+                >
+                  <el-option v-for="i in 10" :key="i-1" :label="String(i-1)" :value="i-1" />
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column label="TE" width="70" align="center">
+              <template #default="{ row }">
+                <el-select
+                  :model-value="getSavedTE(row.blueprintTypeId)"
+                  @change="(val: number) => { saveBlueprintSettings(row.blueprintTypeId, getSavedME(row.blueprintTypeId), val) }"
+                  size="small"
+                  :disabled="!authStore.isAuthenticated"
+                  class="te-select"
+                >
+                  <el-option v-for="i in 21" :key="i-1" :label="String(i-1)" :value="i-1" />
+                </el-select>
               </template>
             </el-table-column>
             <el-table-column label="成本" width="120" align="right">
@@ -165,10 +194,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { blueprintApi, type Blueprint, type CostBreakdownItem, type CalculateCostsRequest } from '../api'
+import { blueprintApi, blueprintSettingsApi, type Blueprint, type CostBreakdownItem, type CalculateCostsRequest, type BlueprintSetting } from '../api'
+import { useAuthStore } from '../stores/auth'
+
+const authStore = useAuthStore()
 
 const blueprints = ref<Blueprint[]>([])
 const selectedBlueprint = ref<Blueprint | null>(null)
@@ -177,11 +209,14 @@ const statusText = ref('')
 const loading = ref(false)
 const calculating = ref(false)
 const loadingBreakdown = ref(false)
+const savingSettings = ref(false)
 const costBreakdownText = ref('')
 const costBreakdownTree = ref<any[]>([])
 const currentPage = ref(1)
 const pageSize = ref(50)
 const totalBlueprints = ref(0)
+
+const savedSettings = reactive<Map<number, BlueprintSetting>>(new Map())
 
 const defaultProps = {
   children: 'children',
@@ -201,6 +236,73 @@ const calcParams = ref<CalculateCostsRequest>({
 })
 
 let searchTimeout: number | null = null
+
+async function loadSavedSettings() {
+  if (!authStore.isAuthenticated) return
+  try {
+    const settings = await blueprintSettingsApi.getSettings()
+    savedSettings.clear()
+    for (const s of settings) {
+      savedSettings.set(s.blueprintTypeId, s)
+    }
+  } catch (e) {
+    console.error('Failed to load settings', e)
+  }
+}
+
+function getSavedME(bpTypeId: number): number {
+  return savedSettings.get(bpTypeId)?.me ?? 0
+}
+
+function getSavedTE(bpTypeId: number): number {
+  return savedSettings.get(bpTypeId)?.te ?? 0
+}
+
+async function saveBlueprintSettings(bpTypeId: number, me: number, te: number) {
+  if (!authStore.isAuthenticated) {
+    ElMessage.warning('请先登录以保存设置')
+    return
+  }
+  savingSettings.value = true
+  try {
+    const saved = await blueprintSettingsApi.saveSetting(bpTypeId, me, te)
+    savedSettings.set(bpTypeId, saved)
+    ElMessage.success('设置已保存')
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '保存设置失败')
+  } finally {
+    savingSettings.value = false
+  }
+}
+
+async function loadAndApplySettings() {
+  await loadSavedSettings()
+  if (savedSettings.size > 0) {
+    calcParams.value.ME = Array.from(savedSettings.values())[0].me
+    calcParams.value.TE = Array.from(savedSettings.values())[0].te
+  }
+}
+
+async function saveAllSettings() {
+  if (savedSettings.size === 0) {
+    ElMessage.warning('没有需要保存的设置')
+    return
+  }
+  savingSettings.value = true
+  try {
+    const settingsToSave = Array.from(savedSettings.values()).map(s => ({
+      blueprintTypeId: s.blueprintTypeId,
+      me: s.me,
+      te: s.te
+    }))
+    await blueprintSettingsApi.saveSettingsBatch(settingsToSave)
+    ElMessage.success(`已保存 ${settingsToSave.length} 个蓝图设置`)
+  } catch (e: any) {
+    ElMessage.error(e.response?.data?.message || '保存设置失败')
+  } finally {
+    savingSettings.value = false
+  }
+}
 
 function handleSearch() {
   if (searchTimeout) clearTimeout(searchTimeout)
@@ -245,8 +347,27 @@ async function calculateCosts() {
   statusText.value = '正在计算成本和时间...'
   
   try {
-    const updatedBlueprints = await blueprintApi.calculateCosts(calcParams.value)
-    blueprints.value = updatedBlueprints
+    const me = calcParams.value.ME
+    const te = calcParams.value.TE
+    
+    const updatedBlueprints = await blueprintApi.calculateCosts({
+      ME: me,
+      TE: te,
+      StructureBonus: calcParams.value.StructureBonus,
+      RigBonus: calcParams.value.RigBonus,
+      IndustryLevel: calcParams.value.IndustryLevel,
+      AdvancedIndustryLevel: calcParams.value.AdvancedIndustryLevel,
+      ReactionStructureBonus: calcParams.value.ReactionStructureBonus,
+      ReactionRigBonus: calcParams.value.ReactionRigBonus,
+      ReactionLevel: calcParams.value.ReactionLevel
+    })
+    
+    blueprints.value = updatedBlueprints.map(bp => ({
+      ...bp,
+      customME: me,
+      customTE: te
+    }))
+    
     ElMessage.success('成本计算完成')
   } catch (error: any) {
     statusText.value = '计算失败: ' + (error.message || '未知错误')
@@ -338,12 +459,22 @@ function formatTime(seconds: number): string {
   return (seconds / 86400).toFixed(1) + '天'
 }
 
-onMounted(() => {
+onMounted(async () => {
   statusText.value = '点击"加载蓝图数据"按钮开始'
+  await loadSavedSettings()
 })
 </script>
 
 <style scoped>
+.me-select, .te-select {
+  width: 50px;
+}
+
+.me-select .el-select__wrapper, .te-select .el-select__wrapper {
+  min-height: 24px;
+  padding: 2px 8px;
+}
+
 .manufacturing-page {
   max-width: 1600px;
   margin: 0 auto;

@@ -83,6 +83,8 @@ export interface Blueprint {
   manufacturingCost: number
   manufacturingTime: number
   inventionCost: number
+  customME?: number
+  customTE?: number
   activities?: {
     manufacturing?: {
       products?: Array<{ typeId: number; quantity: number }>
@@ -209,6 +211,48 @@ export const blueprintApi = {
   async getCostBreakdown(blueprintTypeId: number): Promise<CostBreakdownItem> {
     const response = await api.get<CostBreakdownItem>(`/blueprints/${blueprintTypeId}/breakdown`)
     return response.data
+  }
+}
+
+export interface BlueprintSetting {
+  blueprintTypeId: number
+  me: number
+  te: number
+  updatedAt: string
+}
+
+export const blueprintSettingsApi = {
+  async getSettings(): Promise<BlueprintSetting[]> {
+    const response = await api.get<BlueprintSetting[]>('/blueprintsettings')
+    return response.data
+  },
+
+  async getSetting(blueprintTypeId: number): Promise<BlueprintSetting | null> {
+    try {
+      const response = await api.get<BlueprintSetting>(`/blueprintsettings/${blueprintTypeId}`)
+      return response.data
+    } catch (e: any) {
+      if (e.response?.status === 404) return null
+      throw e
+    }
+  },
+
+  async saveSetting(blueprintTypeId: number, me: number, te: number): Promise<BlueprintSetting> {
+    const response = await api.post<BlueprintSetting>('/blueprintsettings', {
+      blueprintTypeId,
+      me,
+      te
+    })
+    return response.data
+  },
+
+  async saveSettingsBatch(settings: Array<{ blueprintTypeId: number; me: number; te: number }>): Promise<BlueprintSetting[]> {
+    const response = await api.post<BlueprintSetting[]>('/blueprintsettings/batch', settings)
+    return response.data
+  },
+
+  async deleteSetting(blueprintTypeId: number): Promise<void> {
+    await api.delete(`/blueprintsettings/${blueprintTypeId}`)
   }
 }
 
