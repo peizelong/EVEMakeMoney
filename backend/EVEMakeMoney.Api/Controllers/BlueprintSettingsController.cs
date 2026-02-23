@@ -162,10 +162,10 @@ namespace EVEMakeMoney.Api.Controllers
 
     public class UserBlueprintSettingDto
     {
-        public long BlueprintTypeId { get; set; }
-        public int ME { get; set; }
-        public int TE { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public long blueprintTypeId { get; set; }
+        public int me { get; set; }
+        public int te { get; set; }
+        public DateTime updatedAt { get; set; }
     }
 
     public class SaveBlueprintSettingRequest
