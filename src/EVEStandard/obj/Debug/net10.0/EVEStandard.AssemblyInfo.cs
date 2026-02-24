@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EVEStandard")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2247602cab1defd83ad5db994ea979e81586e308")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9d3029257658362c588f061a44a47f0476f7d13b")]
 [assembly: System.Reflection.AssemblyProductAttribute("EVEStandard")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EVEStandard")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

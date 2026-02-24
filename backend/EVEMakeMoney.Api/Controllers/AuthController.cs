@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using EVEMakeMoney.Api.DTOs.Auth;
 using EVEMakeMoney.Api.Services;
 using EVEMakeMoney.Api.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -158,42 +159,5 @@ namespace EVEMakeMoney.Api.Controllers
 
             return Ok(new { message = "Character unbound successfully" });
         }
-    }
-
-    public class SsoUrlResponse
-    {
-        public string Url { get; set; } = string.Empty;
-    }
-
-    public class CharacterInfo
-    {
-        public int Id { get; set; }
-        public long CharacterId { get; set; }
-        public string CharacterName { get; set; } = string.Empty;
-        public string? CorporationName { get; set; }
-        public long? CorporationId { get; set; }
-        public string? AllianceName { get; set; }
-        public long? AllianceId { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? LastUsedAt { get; set; }
-    }
-
-    public class RegisterRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class LoginRequest
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    public class RefreshTokenRequest
-    {
-        public string AccessToken { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
     }
 }

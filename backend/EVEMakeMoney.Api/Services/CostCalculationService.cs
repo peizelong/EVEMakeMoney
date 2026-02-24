@@ -10,10 +10,12 @@ namespace EVEMakeMoney.Api.Services
     public class CostCalculationService
     {
         private readonly EVEMakeMoneyDbContext _db;
+        private readonly CalculationCacheService _cacheService;
 
-        public CostCalculationService(EVEMakeMoneyDbContext db)
+        public CostCalculationService(EVEMakeMoneyDbContext db, CalculationCacheService cacheService)
         {
             _db = db;
+            _cacheService = cacheService;
         }
 
         public Dictionary<long, (decimal Cost, decimal Time)> CalculateAllCostsAndTimes(
@@ -498,24 +500,7 @@ namespace EVEMakeMoney.Api.Services
 
         private Dictionary<long, double> GetMarketPrices()
         {
-            var prices = new Dictionary<long, double>();
-
-            var buyOrders = _db.MarketOrders
-                .Where(x => x.IsBuyOrder == true)
-                .GroupBy(x => x.TypeId)
-                .Select(g => new
-                {
-                    TypeId = g.Key,
-                    MaxPrice = g.Max(x => x.Price)
-                })
-                .ToList();
-
-            foreach (var order in buyOrders)
-            {
-                prices[order.TypeId] = order.MaxPrice;
-            }
-
-            return prices;
+            return _cacheService.GetMarketPrices();
         }
     }
 }

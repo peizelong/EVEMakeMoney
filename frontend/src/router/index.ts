@@ -20,6 +20,11 @@ const router = createRouter({
           component: () => import('../views/Manufacturing.vue')
         },
         {
+          path: 'assistant',
+          name: 'ManufacturingAssistant',
+          component: () => import('../views/ManufacturingAssistant.vue')
+        },
+        {
           path: 'character',
           name: 'Character',
           component: () => import('../views/Character.vue'),

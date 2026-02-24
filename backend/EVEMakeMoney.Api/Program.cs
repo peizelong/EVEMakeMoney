@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AspNetCoreRateLimit;
 using EVEMakeMoney.Api.Data;
+using EVEMakeMoney.Api.Middleware;
 using EVEMakeMoney.Api.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -86,6 +87,7 @@ builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>()
 
 builder.Services.AddSingleton<TypeNameService>();
 builder.Services.AddScoped<BlueprintService>();
+builder.Services.AddScoped<CalculationCacheService>();
 builder.Services.AddScoped<CostCalculationService>();
 builder.Services.AddScoped<CostBreakdownService>();
 builder.Services.AddScoped<MarketPopularityService>();
@@ -125,6 +127,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseIpRateLimiting();
+
+app.UseExceptionHandling();
 
 app.UseCors("AllowFrontend");
 

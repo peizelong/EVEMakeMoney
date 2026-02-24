@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using EVEMakeMoney.Api.Data;
+using EVEMakeMoney.Api.DTOs.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -193,20 +194,5 @@ namespace EVEMakeMoney.Api.Services
         {
             return _configuration.GetValue<int>("Jwt:ExpirationHours", 24);
         }
-    }
-
-    public class AuthResponse
-    {
-        public string AccessToken { get; set; } = string.Empty;
-        public string RefreshToken { get; set; } = string.Empty;
-        public DateTime ExpiresAt { get; set; }
-        public UserInfo User { get; set; } = new();
-    }
-
-    public class UserInfo
-    {
-        public int Id { get; set; }
-        public string Username { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
     }
 }

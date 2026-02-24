@@ -16,6 +16,7 @@ namespace EVEMakeMoney.Api.Controllers
         private readonly TypeNameService _typeNameService;
         private readonly CostCalculationService _costCalculationService;
         private readonly CostBreakdownService _costBreakdownService;
+        private readonly CalculationCacheService _calculationCache;
         private readonly EVEMakeMoneyDbContext _db;
 
         public BlueprintsController(
@@ -23,12 +24,14 @@ namespace EVEMakeMoney.Api.Controllers
             TypeNameService typeNameService,
             CostCalculationService costCalculationService,
             CostBreakdownService costBreakdownService,
+            CalculationCacheService calculationCache,
             EVEMakeMoneyDbContext db)
         {
             _blueprintCache = blueprintCache;
             _typeNameService = typeNameService;
             _costCalculationService = costCalculationService;
             _costBreakdownService = costBreakdownService;
+            _calculationCache = calculationCache;
             _db = db;
         }
 
@@ -78,21 +81,39 @@ namespace EVEMakeMoney.Api.Controllers
         {
             var blueprints = _blueprintCache.GetBlueprints();
 
-            var marketPrices = _costBreakdownService.GetMarketPrices();
-            _costBreakdownService.CalculateInventionCosts(blueprints, marketPrices);
+            var cacheKey = _calculationCache.GetCacheKey(
+                request.ME, request.TE,
+                request.StructureBonus, request.RigBonus,
+                request.IndustryLevel, request.AdvancedIndustryLevel,
+                request.ReactionStructureBonus, request.ReactionRigBonus,
+                request.ReactionLevel);
 
-            var results = _costCalculationService.CalculateAllCostsAndTimes(
-                blueprints,
-                request.ME,
-                request.TE,
-                request.StructureBonus,
-                request.RigBonus,
-                request.IndustryLevel,
-                request.AdvancedIndustryLevel,
-                request.ReactionStructureBonus,
-                request.ReactionRigBonus,
-                request.ReactionLevel
-            );
+            Dictionary<long, (decimal Cost, decimal Time)> results;
+            
+            if (_calculationCache.TryGetCachedResults(cacheKey, out var cachedResults))
+            {
+                results = cachedResults!;
+            }
+            else
+            {
+                var marketPrices = _calculationCache.GetMarketPrices();
+                _costBreakdownService.CalculateInventionCosts(blueprints, marketPrices);
+
+                results = _costCalculationService.CalculateAllCostsAndTimes(
+                    blueprints,
+                    request.ME,
+                    request.TE,
+                    request.StructureBonus,
+                    request.RigBonus,
+                    request.IndustryLevel,
+                    request.AdvancedIndustryLevel,
+                    request.ReactionStructureBonus,
+                    request.ReactionRigBonus,
+                    request.ReactionLevel
+                );
+
+                _calculationCache.SetCachedResults(cacheKey, results);
+            }
 
             foreach (var bp in blueprints)
             {

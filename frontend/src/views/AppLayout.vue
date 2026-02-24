@@ -8,6 +8,10 @@
             <el-icon><Grid /></el-icon>
             制造
           </router-link>
+          <router-link to="/assistant" class="nav-link" :class="{ active: route.path === '/assistant' }">
+            <el-icon><MagicStick /></el-icon>
+            助手
+          </router-link>
           <router-link to="/character" class="nav-link" :class="{ active: route.path === '/character' }">
             <el-icon><User /></el-icon>
             角色
@@ -54,7 +58,7 @@
 
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
-import { Grid, User, TrendCharts, UserFilled, ArrowDown, Setting, SwitchButton } from '@element-plus/icons-vue'
+import { Grid, User, TrendCharts, UserFilled, ArrowDown, Setting, SwitchButton, MagicStick } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
 

@@ -229,6 +229,7 @@ import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { blueprintApi, blueprintSettingsApi, type Blueprint, type CostBreakdownItem, type CalculateCostsRequest, type BlueprintSetting } from '../api'
 import { useAuthStore } from '../stores/auth'
+import { formatNumber, formatTime } from '../utils/format'
 
 const authStore = useAuthStore()
 
@@ -255,15 +256,15 @@ const defaultProps = {
 }
 
 const calcParams = ref<CalculateCostsRequest>({
-  ME: 0,
-  TE: 0,
-  StructureBonus: 0,
-  RigBonus: 0,
-  IndustryLevel: 5,
-  AdvancedIndustryLevel: 0,
-  ReactionStructureBonus: 0,
-  ReactionRigBonus: 0,
-  ReactionLevel: 0
+  me: 0,
+  te: 0,
+  structureBonus: 0,
+  rigBonus: 0,
+  industryLevel: 5,
+  advancedIndustryLevel: 0,
+  reactionStructureBonus: 0,
+  reactionRigBonus: 0,
+  reactionLevel: 0
 })
 
 let searchTimeout: number | null = null
@@ -309,8 +310,8 @@ async function saveBlueprintSettings(bpTypeId: number, me: number, te: number) {
 async function loadAndApplySettings() {
   await loadSavedSettings()
   if (savedSettings.size > 0) {
-    calcParams.value.ME = Array.from(savedSettings.values())[0].me
-    calcParams.value.TE = Array.from(savedSettings.values())[0].te
+    calcParams.value.me = Array.from(savedSettings.values())[0].me
+    calcParams.value.te = Array.from(savedSettings.values())[0].te
   }
 }
 
@@ -378,27 +379,41 @@ async function calculateCosts() {
   statusText.value = '正在计算成本和时间...'
   
   try {
-    const me = calcParams.value.ME
-    const te = calcParams.value.TE
+    const me = calcParams.value.me
+    const te = calcParams.value.te
     
-    const updatedBlueprints = await blueprintApi.calculateCosts({
-      ME: me,
-      TE: te,
-      StructureBonus: calcParams.value.StructureBonus,
-      RigBonus: calcParams.value.RigBonus,
-      IndustryLevel: calcParams.value.IndustryLevel,
-      AdvancedIndustryLevel: calcParams.value.AdvancedIndustryLevel,
-      ReactionStructureBonus: calcParams.value.ReactionStructureBonus,
-      ReactionRigBonus: calcParams.value.ReactionRigBonus,
-      ReactionLevel: calcParams.value.ReactionLevel
+    const allBlueprints = await blueprintApi.calculateCosts({
+      me: me,
+      te: te,
+      structureBonus: calcParams.value.structureBonus,
+      rigBonus: calcParams.value.rigBonus,
+      industryLevel: calcParams.value.industryLevel,
+      advancedIndustryLevel: calcParams.value.advancedIndustryLevel,
+      reactionStructureBonus: calcParams.value.reactionStructureBonus,
+      reactionRigBonus: calcParams.value.reactionRigBonus,
+      reactionLevel: calcParams.value.reactionLevel
     })
     
-    blueprints.value = updatedBlueprints.map(bp => ({
-      ...bp,
-      customME: me,
-      customTE: te
-    }))
+    const blueprintMap = new Map(allBlueprints.map(bp => [bp.blueprintTypeId, bp]))
     
+    console.log('Sample calculated blueprint:', allBlueprints[0])
+    
+    blueprints.value = blueprints.value.map(bp => {
+      const calculated = blueprintMap.get(bp.blueprintTypeId)
+      if (calculated) {
+        return {
+          ...bp,
+          manufacturingCost: calculated.manufacturingCost,
+          manufacturingTime: calculated.manufacturingTime,
+          inventionCost: calculated.inventionCost,
+          customME: me,
+          customTE: te
+        }
+      }
+      return { ...bp, customME: me, customTE: te }
+    })
+    
+    statusText.value = `成本计算完成，已更新 ${blueprints.value.length} 个蓝图`
     ElMessage.success('成本计算完成')
   } catch (error: any) {
     statusText.value = '计算失败: ' + (error.message || '未知错误')
@@ -476,19 +491,7 @@ function convertToTreeData(item: CostBreakdownItem): any {
   return node
 }
 
-function formatNumber(num: number): string {
-  if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B'
-  if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M'
-  if (num >= 1000) return (num / 1000).toFixed(2) + 'K'
-  return num.toFixed(2)
-}
 
-function formatTime(seconds: number): string {
-  if (seconds < 60) return seconds.toFixed(0) + '秒'
-  if (seconds < 3600) return (seconds / 60).toFixed(1) + '分钟'
-  if (seconds < 86400) return (seconds / 3600).toFixed(1) + '小时'
-  return (seconds / 86400).toFixed(1) + '天'
-}
 
 onMounted(async () => {
   statusText.value = '点击"加载蓝图数据"按钮开始'

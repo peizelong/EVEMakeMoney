@@ -12,16 +12,18 @@ namespace EVEMakeMoney.Api.Services
     {
         private readonly EVEMakeMoneyDbContext _db;
         private readonly TypeNameService _typeNameService;
+        private readonly CalculationCacheService _cacheService;
         private Dictionary<long, Blueprint> _productToBlueprint = new();
         private Dictionary<long, double> _marketPrices = new();
         private Dictionary<long, long> _t2BlueprintToT1Product = new();
         private HashSet<long> _t2Blueprints = new();
         private Dictionary<long, Blueprint> _blueprints = new();
 
-        public CostBreakdownService(EVEMakeMoneyDbContext db, TypeNameService typeNameService)
+        public CostBreakdownService(EVEMakeMoneyDbContext db, TypeNameService typeNameService, CalculationCacheService cacheService)
         {
             _db = db;
             _typeNameService = typeNameService;
+            _cacheService = cacheService;
         }
 
         public CostBreakdownItem? GetCostBreakdown(long blueprintTypeId, List<Blueprint> blueprints)
@@ -320,24 +322,7 @@ namespace EVEMakeMoney.Api.Services
 
         public Dictionary<long, double> GetMarketPrices()
         {
-            var prices = new Dictionary<long, double>();
-
-            var buyOrders = _db.MarketOrders
-                .Where(x => x.IsBuyOrder == true)
-                .GroupBy(x => x.TypeId)
-                .Select(g => new
-                {
-                    TypeId = g.Key,
-                    MaxPrice = g.Max(x => x.Price)
-                })
-                .ToList();
-
-            foreach (var order in buyOrders)
-            {
-                prices[order.TypeId] = order.MaxPrice;
-            }
-
-            return prices;
+            return _cacheService.GetMarketPrices();
         }
 
         public string FormatCostTree(CostBreakdownItem item, int indent = 0)
