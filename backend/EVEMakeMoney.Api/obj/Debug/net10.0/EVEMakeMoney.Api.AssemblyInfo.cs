@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EVEMakeMoney.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2247602cab1defd83ad5db994ea979e81586e308")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1fbb4fa7adf5e61629b4fd84e487f13ce3d2f9ee")]
 [assembly: System.Reflection.AssemblyProductAttribute("EVEMakeMoney.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EVEMakeMoney.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
