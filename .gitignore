@@ -3,5 +3,6 @@
 /bin
 /build.log
 /EVEMakeMoney.db
+*.db
 /obj
 /sde
